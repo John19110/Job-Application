@@ -36,9 +36,11 @@ bld/
 [Ll]ogs/
 
 appsettings.json
+src/JobPlatform.API/appsettings.json
 appsettings.Development.json
+src/JobPlatform.API/appsettings.Development.json
 launchSettings.json
-
+src/JobPlatform.API/Properties/launchSettings.json
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
