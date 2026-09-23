@@ -1,3 +1,45 @@
+# JobPlatform — CQRS (MediatR) Migration Notes
+
+This repository contains the JobPlatform solution. A minimal, low-risk CQRS migration using MediatR was applied to the Application layer to migrate key Jobs and Applications use-cases to Commands/Queries and Handlers.
+
+## Summary of changes
+- Added MediatR and registered handlers by assembly scanning.
+- Introduced Commands/Queries/Handlers for Jobs and Applications.
+- Controllers `JobsController` and `JobApplicationsController` now use `IMediator` instead of calling services directly.
+- Existing business rules remain in the Application services (`JobService`, `ApplicationService`) — handlers call these services to preserve behavior.
+
+## New/Modified files (high level)
+- `src/JobPlatform.Application/AssemblyReference.cs` (marker for MediatR scanning)
+- `src/JobPlatform.Application/Features/...` (new Commands, Queries and Handlers)
+  - Jobs: `CreateJob`, `DeleteJob`, `GetJobs`, `GetJobById`
+  - Applications: `ApplyForJob`, `CancelApplication`, `GetMyApplications`, `GetApplicationsForJob`
+- `src/JobPlatform.Application/DependencyInjection.cs` — MediatR registration added
+- `src/JobPlatform.Application/JobPlatform.Application.csproj` — MediatR packages added
+- `src/JobPlatform.API/JobPlatform.API.csproj` — MediatR package added
+- `src/JobPlatform.API/Controllers/JobsController.cs` — now uses `IMediator`
+- `src/JobPlatform.API/Controllers/JobApplicationsController.cs` — now uses `IMediator`
+
+## Why this approach
+- Minimize risk: handlers are thin orchestrators that call existing services, preserving current validation and authorization logic.
+- Incremental: start with core write/read flows (Create/Delete job, Apply/Cancel application, and relevant queries).
+- Keep Clean Architecture: handlers live in `Application/Features/...`, DI registration in `Application/DependencyInjection`.
+
+## How to build locally
+1. From the solution/workspace root run:
+   - `dotnet restore`
+   - `dotnet build src/JobPlatform.API/JobPlatform.API.csproj`
+2. The API runs as before (JWT auth, Identity, database migrations unchanged).
+
+## Notes & next steps
+- No FluentValidation or pipeline behaviors were added yet to avoid over-engineering.
+- Auth endpoints (`AuthController`) were left using `IAuthService`; they can be migrated to CQRS later.
+- Recommended: add unit tests for Handlers (mock `IJobService` / `IApplicationService`) and API integration tests.
+- If you want pipeline behaviors (validation/logging) or to move business rules from services into handlers/domain services, we can plan that as a follow-up.
+
+If you want, I can now:
+- run `dotnet restore` and `dotnet build` and fix any compile issues, or
+- add unit tests for one handler as an example.
+
 # Job Application API
 
 A robust, production-ready RESTful Web API for a Job Application Platform built with ASP.NET Core 8 and Entity Framework Core following Clean Architecture principles. The platform connects recruiters and candidates, providing secure role-based access to publish job openings, submit applications, manage application statuses, and track recruitment workflows.
